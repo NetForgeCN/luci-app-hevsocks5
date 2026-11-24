@@ -1,0 +1,45 @@
+#!/bin/sh
+# Migrate legacy hyphenated UCI option names to underscore names.
+# rpcd uci/set rejects option names containing '-', so the LuCI page cannot
+# save them. This runs once on upgrade and preserves existing settings.
+
+CONF='hev-socks5-server'
+
+migrate() {
+	local old="$1" new="$2" value
+
+	value="$(uci -q get "$CONF.config.$old" 2>/dev/null)" || return 0
+	[ -n "$value" ] || return 0
+	uci -q get "$CONF.config.$new" >/dev/null 2>&1 && return 0
+
+	uci set "$CONF.config.$new=$value" 2>/dev/null || return 0
+	uci delete "$CONF.config.$old" 2>/dev/null || :
+}
+
+migrate listen-address listen_address
+migrate udp-port udp_port
+migrate udp-listen-address udp_listen_address
+migrate udp-public-address-v4 udp_public_address_v4
+migrate udp-public-address-v6 udp_public_address_v6
+migrate listen-ipv6-only listen_ipv6_only
+migrate tcp-fastopen tcp_fastopen
+migrate bind-address bind_address
+migrate bind-address-v4 bind_address_v4
+migrate bind-address-v6 bind_address_v6
+migrate bind-interface bind_interface
+migrate domain-address-type domain_address_type
+migrate allow-no-auth allow_no_auth
+migrate task-stack-size task_stack_size
+migrate udp-recv-buffer-size udp_recv_buffer_size
+migrate udp-copy-buffer-nums udp_copy_buffer_nums
+migrate connect-timeout connect_timeout
+migrate tcp-read-write-timeout tcp_read_write_timeout
+migrate udp-read-write-timeout udp_read_write_timeout
+migrate read-write-timeout read_write_timeout
+migrate log-file log_file
+migrate log-level log_level
+migrate limit-nofile limit_nofile
+migrate pid-file pid_file
+
+uci commit "$CONF" >/dev/null 2>&1 || :
+exit 0
