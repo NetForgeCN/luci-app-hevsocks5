@@ -61,19 +61,30 @@ function randomString(len) {
 	return out;
 }
 
+// 把父类 render() 的结果统一收敛成单个 DOM 节点。LuCI 各版本的
+// form.Value.render() 可能返回同步节点、Promise<Node>，个别实现还会返回
+// 节点数组；后续一律走 Promise，避免把 Promise/数组当成节点去调用
+// querySelector 而抛出 "node.querySelector is not a function"。
+function renderedNode(x) {
+	return Promise.resolve(x).then(function(node) {
+		if (node && !node.querySelector && node.length)
+			node = node[0];
+
+		return node;
+	});
+}
+
 var RandomValue = form.Value.extend({
 	randLen: 16,
 
-	// form.Value.render() 在 LuCI 里返回 Promise<Node>（内部要等 cfgvalue()
-	// 与 widget 渲染完成），不是同步 DOM 节点；直接 querySelector 会抛
-	// "node.querySelector is not a function"。沿父类的 Promise 链做后置加工，
-	// 再把 Promise 交回 LuCI（renderChildren 用 Promise.all 收集各 option）。
-	// Promise.resolve 包一层，兼容返回同步节点的旧版 LuCI。
 	render: function(index, section_id, in_table) {
 		var self = this;
 
-		return Promise.resolve(form.Value.prototype.render.call(this, index, section_id, in_table))
+		return renderedNode(form.Value.prototype.render.call(this, index, section_id, in_table))
 			.then(function(node) {
+				if (!node || typeof node.querySelector !== 'function')
+					return node;
+
 				var input = node.querySelector('input');
 
 				if (input) {
@@ -99,8 +110,11 @@ var RandomValue = form.Value.extend({
 
 var PasswordValue = RandomValue.extend({
 	render: function(index, section_id, in_table) {
-		return Promise.resolve(RandomValue.prototype.render.call(this, index, section_id, in_table))
+		return renderedNode(RandomValue.prototype.render.call(this, index, section_id, in_table))
 			.then(function(node) {
+				if (!node || typeof node.querySelector !== 'function')
+					return node;
+
 				var input = node.querySelector('input');
 
 				if (input) {
