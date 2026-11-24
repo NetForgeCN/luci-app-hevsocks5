@@ -103,6 +103,9 @@ msgstr ""
 msgid "Number of worker threads handling SOCKS5 sessions. Each thread owns its own task system. On a small router 1-4 is usually enough."
 msgstr ""
 
+msgid "Worker threads must be at least 1"
+msgstr ""
+
 msgid "TCP listen port"
 msgstr ""
 
@@ -253,7 +256,7 @@ msgstr ""
 msgid "Legacy read/write timeout (ms)"
 msgstr ""
 
-msgid "Compatibility option from older upstream versions. When the TCP or UDP specific timeout is unset, this value is used as a fallback. Usually leave it empty."
+msgid "Compatibility option from older upstream versions. When set, the TCP and UDP specific timeouts below are not written to YAML and this value applies to both. Usually leave it empty."
 msgstr ""
 
 msgid "Log file"

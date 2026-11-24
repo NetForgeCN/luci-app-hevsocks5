@@ -223,6 +223,12 @@ return view.extend({
 			_('Number of worker threads handling SOCKS5 sessions. Each thread owns its own task system. On a small router 1-4 is usually enough.'));
 		o.default = '4';
 		o.datatype = 'uinteger';
+		o.validate = function(section_id, value) {
+			if (/^[0-9]+$/.test(value) && Number(value) >= 1)
+				return true;
+
+			return _('Worker threads must be at least 1');
+		};
 		o.rmempty = false;
 
 		o = s.taboption('listen', form.Value, 'port', _('TCP listen port'),
@@ -240,10 +246,19 @@ return view.extend({
 			_('Leave empty or use 0 for one ephemeral UDP port per session. A fixed port uses the same port for every session; a-b picks a port from the range in round-robin order. Open the chosen port or range in the firewall.'));
 		o.placeholder = '10000-20000';
 		o.validate = function(section_id, value) {
-			if (value === '' || /^([0-9]+|[0-9]+-[0-9]+)$/.test(value))
+			if (value === '')
 				return true;
 
-			return _('Use a port, a range like 10000-20000, or leave empty');
+			var parts = /^([0-9]+)(?:-([0-9]+))?$/.exec(value);
+			if (!parts)
+				return _('Use a port, a range like 10000-20000, or leave empty');
+
+			var beg = Number(parts[1]);
+			var end = parts[2] != null ? Number(parts[2]) : beg;
+			if (beg < 1 || beg > 65535 || end < 1 || end > 65535 || beg > end)
+				return _('Use a port, a range like 10000-20000, or leave empty');
+
+			return true;
 		};
 		o.rmempty = true;
 
@@ -358,7 +373,7 @@ return view.extend({
 		o.rmempty = false;
 
 		o = s.taboption('misc', form.Value, 'read-write-timeout', _('Legacy read/write timeout (ms)'),
-			_('Compatibility option from older upstream versions. When the TCP or UDP specific timeout is unset, this value is used as a fallback. Usually leave it empty.'));
+			_('Compatibility option from older upstream versions. When set, the TCP and UDP specific timeouts below are not written to YAML and this value applies to both. Usually leave it empty.'));
 		o.placeholder = '60000';
 		o.datatype = 'uinteger';
 		o.rmempty = true;

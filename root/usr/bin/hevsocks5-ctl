@@ -41,6 +41,29 @@ check_uint() {
 	is_uint "$2" || die "$1 must be an integer"
 }
 
+valid_udp_port() {
+	local p="$1" beg end
+
+	[ -n "$p" ] || return 0
+
+	case "$p" in
+		*-*)
+			beg="${p%%-*}"
+			end="${p#*-}"
+			is_uint "$beg" && is_uint "$end" || return 1
+			[ "$beg" -ge 1 ] 2>/dev/null && [ "$beg" -le 65535 ] 2>/dev/null || return 1
+			[ "$end" -ge 1 ] 2>/dev/null && [ "$end" -le 65535 ] 2>/dev/null || return 1
+			[ "$beg" -le "$end" ] 2>/dev/null || return 1
+			;;
+		*)
+			is_uint "$p" || return 1
+			[ "$p" -ge 1 ] 2>/dev/null && [ "$p" -le 65535 ] 2>/dev/null || return 1
+			;;
+	esac
+
+	return 0
+}
+
 yaml_str() {
 	printf "'%s'" "$(printf '%s' "$1" | sed "s/'/''/g")"
 }
@@ -92,11 +115,12 @@ generate() {
 	limit_nofile="$(val limit-nofile 1000000)"
 
 	is_uint "$workers" || die 'workers must be an integer'
+	[ "$workers" -ge 1 ] 2>/dev/null || die 'workers must be at least 1'
 	is_uint "$port" || die 'port must be an integer'
 	[ "$port" -ge 1 ] 2>/dev/null && [ "$port" -le 65535 ] 2>/dev/null || die 'port must be between 1 and 65535'
 	[ -n "$listen_address" ] || die 'listen-address must not be empty'
 	if [ -n "$udp_port" ]; then
-		printf '%s' "$udp_port" | grep -Eq '^([0-9]+|[0-9]+-[0-9]+)$' || die 'udp-port must be a port or a range like 10000-20000'
+		valid_udp_port "$udp_port" || die 'udp-port must be a port (1-65535) or a range like 10000-20000'
 	fi
 	printf '%s' "$mark" | grep -Eq '^(0[xX][0-9A-Fa-f]+|[0-9]+)$' || die 'mark must be decimal, hex (0x..) or octal (0..)'
 	case "$domain_address_type" in
@@ -161,9 +185,12 @@ generate() {
 		echo "  udp-recv-buffer-size: $udp_recv_buffer_size"
 		echo "  udp-copy-buffer-nums: $udp_copy_buffer_nums"
 		echo "  connect-timeout: $connect_timeout"
-		[ -n "$legacy_rw_timeout" ] && echo "  read-write-timeout: $legacy_rw_timeout"
-		echo "  tcp-read-write-timeout: $tcp_rw_timeout"
-		echo "  udp-read-write-timeout: $udp_rw_timeout"
+		if [ -n "$legacy_rw_timeout" ]; then
+			echo "  read-write-timeout: $legacy_rw_timeout"
+		else
+			echo "  tcp-read-write-timeout: $tcp_rw_timeout"
+			echo "  udp-read-write-timeout: $udp_rw_timeout"
+		fi
 		if [ -n "$log_file" ]; then
 			echo "  log-file: $(yaml_str "$log_file")"
 		else

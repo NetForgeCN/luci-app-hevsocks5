@@ -70,6 +70,7 @@ UCI 段为 `hev-socks5-server.config`，选项名与上游 YAML 键基本一致�
 
 - `auth_file` 对应 YAML 的 `auth.file`。设置后优先于内联的 `username/password`，认证文件内容格式为每行 `USER PASS [MARK]`，修改后可用 `SIGUSR1` 热重载。
 - `allow-no-auth` 是本应用增加的安全开关。凭据和认证文件都为空时只有打开它才会生成无认证配置，避免误操作把路由器变成开放代理。
+- `read-write-timeout` 是旧版兼容项：设置后渲染器不再写 TCP/UDP 专用超时，上游会把该值同时应用到两者；留空则使用下方的专用超时。
 
 `pid-file` 仅作展示，生成 YAML 时会被忽略：上游在设置它后会调用 `daemon()` 自行脱壳，与 procd 监管冲突。
 `limit-nofile` 默认写 1000000，与上游 init 脚本向 procd 申请的值保持一致，否则程序启动时会把上限降回默认的 65535。

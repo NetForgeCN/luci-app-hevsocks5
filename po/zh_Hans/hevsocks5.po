@@ -103,6 +103,9 @@ msgstr "工作线程数"
 msgid "Number of worker threads handling SOCKS5 sessions. Each thread owns its own task system. On a small router 1-4 is usually enough."
 msgstr "处理 SOCKS5 会话的线程数，每个线程有独立的任务系统。小路由上通常 1-4 个足够。"
 
+msgid "Worker threads must be at least 1"
+msgstr "工作线程数至少为 1"
+
 msgid "TCP listen port"
 msgstr "TCP 监听端口"
 
@@ -253,8 +256,8 @@ msgstr "UDP 中继会话的空闲超时，上游默认 60000 毫秒。"
 msgid "Legacy read/write timeout (ms)"
 msgstr "旧版读写超时（毫秒）"
 
-msgid "Compatibility option from older upstream versions. When the TCP or UDP specific timeout is unset, this value is used as a fallback. Usually leave it empty."
-msgstr "旧版上游配置的兼容项。TCP 或 UDP 专用超时未设置时作为后备值，通常留空即可。"
+msgid "Compatibility option from older upstream versions. When set, the TCP and UDP specific timeouts below are not written to YAML and this value applies to both. Usually leave it empty."
+msgstr "旧版上游配置的兼容项。设置后，下方 TCP/UDP 专用超时不会写入 YAML，该值会同时应用到两者。通常留空即可。"
 
 msgid "Log file"
 msgstr "日志文件"
