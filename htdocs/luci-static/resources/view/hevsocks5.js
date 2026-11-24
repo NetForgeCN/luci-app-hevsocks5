@@ -89,6 +89,34 @@ var RandomValue = form.Value.extend({
 	}
 });
 
+var PasswordValue = RandomValue.extend({
+	render: function(index, section_id, in_table) {
+		var node = RandomValue.prototype.render.call(this, index, section_id, in_table);
+		var input = node.querySelector('input');
+
+		if (input) {
+			input.type = 'password';
+
+			var btn = E('button', {
+				'class': 'btn',
+				'type': 'button',
+				'title': _('Show password'),
+				'click': function(ev) {
+					ev.preventDefault();
+					var visible = input.type === 'text';
+					input.type = visible ? 'password' : 'text';
+					btn.title = visible ? _('Show password') : _('Hide password');
+				}
+			}, '👁');
+
+			var field = node.querySelector('.cbi-value-field') || node;
+			field.appendChild(btn);
+		}
+
+		return node;
+	}
+});
+
 function showError(e) {
 	ui.showModal(_('Operation failed'), [
 		E('p', {}, String(e && e.message ? e.message : e)),
@@ -185,7 +213,7 @@ return view.extend({
 		o.default = '';
 		o.rmempty = true;
 
-		o = s.taboption('basic', RandomValue, 'password', _('Password'),
+		o = s.taboption('basic', PasswordValue, 'password', _('Password'),
 			_('Up to 255 characters. Stored in plain text in UCI and in the generated YAML, so restrict file permissions accordingly.'));
 		o.randLen = 24;
 		o.default = '';

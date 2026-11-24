@@ -16,6 +16,12 @@ msgstr "生成随机值"
 msgid "Generate"
 msgstr "生成"
 
+msgid "Show password"
+msgstr "显示密码"
+
+msgid "Hide password"
+msgstr "隐藏密码"
+
 msgid "Operation failed"
 msgstr "操作失败"
 

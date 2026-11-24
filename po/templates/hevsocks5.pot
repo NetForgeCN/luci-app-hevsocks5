@@ -16,6 +16,12 @@ msgstr ""
 msgid "Generate"
 msgstr ""
 
+msgid "Show password"
+msgstr ""
+
+msgid "Hide password"
+msgstr ""
+
 msgid "Operation failed"
 msgstr ""
 
