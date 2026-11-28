@@ -131,7 +131,9 @@ generate() {
 
 	workers="$(val workers 4)"
 	port="$(val port 1080)"
-	listen_address="$(val listen_address '::')"
+	# Default to loopback. A wildcard bind (:: / 0.0.0.0) exposes the proxy
+	# on every interface including WAN; it must be an explicit choice.
+	listen_address="$(val listen_address '127.0.0.1')"
 	udp_port="$(get udp_port)"
 	udp_listen_address="$(get udp_listen_address)"
 	udp_public_address_v4="$(get udp_public_address_v4)"
@@ -191,6 +193,16 @@ generate() {
 
 	if [ -z "$auth_file" ] && { [ -z "$username" ] || [ -z "$password" ]; }; then
 		is_true "$allow_no_auth" || die 'username/password are empty: set both, set auth_file, or enable allow-no-auth explicitly'
+	fi
+
+	# An unauthenticated listener on a wildcard/routable address is an open
+	# proxy reachable from LAN and, if forwarded, WAN. Permit no-auth only on
+	# loopback; a public proxy needs an explicit auth_file or credentials.
+	if is_true "$allow_no_auth"; then
+		case "$listen_address" in
+			127.0.0.1|::1|localhost) ;;
+			*) die 'allow-no-auth is only permitted on a loopback listen address (127.0.0.1 or ::1); set credentials or auth_file for a routable address' ;;
+		esac
 	fi
 
 	# Validate before rendering: a die() inside $(yaml_str ...) would only

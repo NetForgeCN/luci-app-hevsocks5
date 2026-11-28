@@ -70,5 +70,16 @@ check_json \
 
 check_yaml .github/workflows/ci.yml
 
+# The default listen must stay on loopback and no-auth must be rejected on a
+# routable address; both are open-proxy footguns if ever reverted.
+if ! grep -q "set_default listen_address '127.0.0.1'" root/etc/uci-defaults/luci-hevsocks5; then
+	echo "uci-defaults must default listen_address to loopback" >&2
+	fail=1
+fi
+if ! grep -q "allow-no-auth is only permitted on a loopback" root/usr/bin/hevsocks5-ctl; then
+	echo "hevsocks5-ctl must reject no-auth on a routable listen address" >&2
+	fail=1
+fi
+
 [ "$fail" -eq 0 ] || { echo "static checks failed" >&2; exit 1; }
 echo "all static checks passed"
