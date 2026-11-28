@@ -341,8 +341,8 @@ return view.extend({
 		o.rmempty = false;
 
 		o = s.taboption('listen', form.Value, 'listen_address', _('Listen address'),
-			_('IPv4 or IPv6 address to bind. The default :: accepts IPv4-mapped connections as well; use 0.0.0.0 for IPv4 only.'));
-		o.default = '::';
+			_('Address to bind. Defaults to 127.0.0.1 (loopback only). Use ::1 for IPv6 loopback; 0.0.0.0 or :: bind all interfaces (including WAN) and must be paired with authentication.'));
+		o.default = '127.0.0.1';
 		o.rmempty = false;
 
 		o = s.taboption('listen', form.Value, 'udp_port', _('UDP listen port'),
@@ -435,7 +435,7 @@ return view.extend({
 		o.rmempty = true;
 
 		o = s.taboption('auth', form.Flag, 'allow_no_auth', _('Allow unauthenticated access'),
-			_('Danger: with no username, password or authentication file the server would be an open proxy. This flag is required to permit that state. Leave it off for normal use.'));
+			_('Danger: no authentication makes the server an open proxy. Only permitted with a loopback listen address (127.0.0.1 or ::1); the backend refuses to start with no-auth on a routable address. Leave it off for normal use.'));
 		o.default = '0';
 		o.rmempty = false;
 

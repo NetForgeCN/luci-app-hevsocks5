@@ -70,7 +70,7 @@ UCI 段为 `hev-socks5-server.config`。UCI 选项名使用下划线（rpcd 的 
 两个特殊选项：
 
 - `auth_file` 对应 YAML 的 `auth.file`。设置后优先于内联的 `username/password`，认证文件内容格式为每行 `USER PASS [MARK]`，修改后可用 `SIGUSR1` 热重载。
-- `allow_no_auth` 是本应用增加的安全开关。凭据和认证文件都为空时只有打开它才会生成无认证配置，避免误操作把路由器变成开放代理。
+- `allow_no_auth` 是本应用增加的安全开关。凭据和认证文件都为空时只有打开它才会生成无认证配置，避免误操作把路由器变成开放代理。渲染器进一步限制：无认证**只允许回环监听**（`127.0.0.1` 或 `::1`），在 `::` / `0.0.0.0` 等非回环地址上启用会直接拒绝生成并报错，防止开放代理暴露到 LAN/WAN。
 - `read_write_timeout` 是旧版兼容项：设置后渲染器不再写 TCP/UDP 专用的 `tcp_read_write_timeout` / `udp_read_write_timeout`，上游会把该值同时应用到两者；留空则使用这两个专用超时。
 
 `pid_file` 仅作展示，生成 YAML 时会被忽略：上游在设置它后会调用 `daemon()` 自行脱壳，与 procd 监管冲突。
@@ -78,6 +78,8 @@ UCI 段为 `hev-socks5-server.config`。UCI 选项名使用下划线（rpcd 的 
 
 ## 安全提醒
 
+- `listen_address` 默认 `127.0.0.1`（仅本机）。`::1` 是 IPv6 回环；`0.0.0.0` / `::`（含 IPv4-mapped）会监听所有接口，包括 WAN，必须显式设置并配合认证与防火墙。
+- 无认证（`allow_no_auth=1`）只能在回环监听上使用；渲染器会拒绝"非回环 + 无认证"的配置，避免变成开放代理。
 - 用户名、密码明文保存在 UCI 和生成的 YAML 中；生成的 YAML 权限为 `0600`，UCI 文件权限由系统控制。
 - 随机值只由服务端 `/dev/urandom` 生成；服务端生成失败时按钮会报错，不会退回浏览器 `Math.random`，避免弱随机凭据。写入 YAML 的字符串禁止控制字符，`conffile` 必须是无 `..` 的绝对路径且不能是符号链接。
 - rpcd 中只有具备写权限的会话才能执行 `/usr/bin/hevsocks5-ctl`；读权限仅可查询服务状态和 UCI。

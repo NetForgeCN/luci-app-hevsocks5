@@ -21,7 +21,9 @@ set_default conffile /etc/hev-socks5-server/main.yml
 
 set_default workers 4
 set_default port 1080
-set_default listen_address '::'
+# Bind loopback by default: a wildcard/:: bind exposes the proxy on every
+# interface including WAN. Set 0.0.0.0/:: explicitly for LAN/WAN access.
+set_default listen_address '127.0.0.1'
 set_default udp_port ''
 set_default udp_listen_address ''
 set_default udp_public_address_v4 ''
